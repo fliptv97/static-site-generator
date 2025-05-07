@@ -1,0 +1,31 @@
+import os
+
+from markdown_blocks import markdown_to_html_node
+
+
+def extract_title(markdown):
+    lines = markdown.splitlines()
+
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:]
+
+    raise ValueError("markdown must have at least one level 1 header")
+
+
+def generate_page(src, dst, template_path):
+    print(f"Generating page from {src} to {dst} using {template_path}")
+
+    with open(src, encoding="utf-8") as markdown_file:
+        with open(template_path, encoding="utf-8") as template_file:
+            markdown = markdown_file.read()
+            title = extract_title(markdown)
+            node = markdown_to_html_node(markdown)
+            content = node.to_html()
+            template = template_file.read()
+            page = template.replace("{{ Title }}", title).replace("{{ Content }}", content)
+
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+            with open(dst, "w", encoding="utf-8") as html_file:
+                html_file.write(page)

@@ -105,7 +105,7 @@ def code_to_html_node(block):
 
 
 def quote_to_html_node(block):
-    children = text_to_children(block.replace("> ").replace("\n", " "))
+    children = text_to_children(block.replace("> ", "").replace("\n", " "))
     blockquote = ParentNode("blockquote", children)
 
     return blockquote
@@ -121,7 +121,7 @@ def unordered_list_to_html_node(block):
 
 def ordered_list_to_html_node(block):
     lines = block.splitlines()
-    list_items = map(lambda line: ParentNode("li", text_to_children(line[2:])), lines)
+    list_items = map(lambda line: ParentNode("li", text_to_children(line[3:])), lines)
     ul = ParentNode("ol", list_items)
 
     return ul
