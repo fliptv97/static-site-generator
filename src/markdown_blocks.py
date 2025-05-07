@@ -1,6 +1,10 @@
 from enum import Enum
 import re
 
+from htmlnode import ParentNode
+from textnode import text_node_to_html_node, TextNode, TextType
+from inline_markdown import text_to_textnodes
+
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -45,3 +49,85 @@ def is_ordered_list(lines):
         counter += 1
 
     return True
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    children = []
+
+    for block in blocks:
+        block_type = block_to_block_type(block)
+
+        match (block_type):
+            case BlockType.PARAGRAPH:
+                children.append(paragraph_to_html_node(block))
+            case BlockType.HEADING:
+                children.append(heading_to_html_node(block))
+            case BlockType.CODE:
+                children.append(code_to_html_node(block))
+            case BlockType.QUOTE:
+                children.append(quote_to_html_node(block))
+            case BlockType.UNORDERED_LIST:
+                children.append(unordered_list_to_html_node(block))
+            case BlockType.ORDERED_LIST:
+                children.append(ordered_list_to_html_node(block))
+            case _:
+                raise ValueError(f"invalid or unsupported block type: {block_type}")
+
+    return ParentNode("div", children)
+
+
+def paragraph_to_html_node(block):
+    paragraph = block.replace("\n", " ")
+    children = text_to_children(paragraph)
+
+    return ParentNode("p", children)
+
+
+def heading_to_html_node(block):
+    parts = block.split(" ", 1)
+
+    if parts[1] == "":
+        raise ValueError("heading must not be empty")
+
+    level = len(parts[0])
+    children = text_to_children(parts[1])
+
+    return ParentNode(f"h{level}", children)
+
+
+def code_to_html_node(block):
+    text_node = TextNode(block[4:-3], TextType.PLAIN)
+    html_node = text_node_to_html_node(text_node)
+    code = ParentNode("code", [html_node])
+    pre = ParentNode("pre", [code])
+
+    return pre
+
+
+def quote_to_html_node(block):
+    children = text_to_children(block.replace("> ").replace("\n", " "))
+    blockquote = ParentNode("blockquote", children)
+
+    return blockquote
+
+
+def unordered_list_to_html_node(block):
+    lines = block.splitlines()
+    list_items = map(lambda line: ParentNode("li", text_to_children(line[2:])), lines)
+    ul = ParentNode("ul", list_items)
+
+    return ul
+
+
+def ordered_list_to_html_node(block):
+    lines = block.splitlines()
+    list_items = map(lambda line: ParentNode("li", text_to_children(line[2:])), lines)
+    ul = ParentNode("ol", list_items)
+
+    return ul
+
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+
+    return list(map(text_node_to_html_node, text_nodes))
