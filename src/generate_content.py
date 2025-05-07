@@ -1,6 +1,25 @@
 import os
+from pathlib import Path
 
 from markdown_blocks import markdown_to_html_node
+
+
+def generate_pages(src, dst, template_path):
+    if not os.path.exists(dst):
+        os.mkdir(dst)
+
+    for filename in os.listdir(src):
+        src_path = os.path.join(src, filename)
+        dst_path = os.path.join(dst, filename)
+
+        if os.path.isfile(src_path):
+            generate_page(
+                os.path.join(src_path),
+                os.path.join(Path(dst_path).with_suffix(".html")),
+                template_path
+            )
+        else:
+            generate_pages(src_path, dst_path, template_path)
 
 
 def extract_title(markdown):

@@ -2,7 +2,7 @@ import os
 import shutil
 
 from copy_dir_content import copy_dir_content
-from generate_content import generate_page
+from generate_content import generate_pages
 
 
 DIR_PATH_PUBLIC = "./public"
@@ -19,11 +19,7 @@ def main():
     print("Copying static files to public directory...")
     copy_dir_content(DIR_PATH_STATIC, DIR_PATH_PUBLIC)
 
-    generate_page(
-        os.path.join(DIR_PATH_CONTENT, "index.md"),
-        os.path.join(DIR_PATH_PUBLIC, "index.html"),
-        TEMPLATE_PATH
-    )
+    generate_pages(DIR_PATH_CONTENT, DIR_PATH_PUBLIC, TEMPLATE_PATH)
 
 
 if __name__ == "__main__":
